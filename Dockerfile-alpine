@@ -1,0 +1,46 @@
+FROM golang:alpine AS BUILDIMAGE
+
+ARG GITHASH
+ARG TIMESTAMP
+ARG COMPONENT
+ARG MODULE
+ARG CUSTOMER
+ARG PROJECT
+
+RUN apk add build-base gcc abuild binutils make argp-standalone linux-headers git
+RUN mkdir /tmp/build
+
+COPY . /tmp/build/src
+
+WORKDIR /tmp/build/src
+RUN make clean
+RUN GITHASH=${GITHASH} TIMESTAMP=${TIMESTAMP} make dep
+RUN GITHASH=${GITHASH} TIMESTAMP=${TIMESTAMP} TARGET=${PROJECT}.${MODULE}.${COMPONENT} make all
+
+FROM alpine
+
+ARG GITHASH
+ARG TIMESTAMP
+ARG COMPONENT
+ARG MODULE
+ARG CUSTOMER
+ARG PROJECT
+
+RUN apk --update add curl bind-tools bash vim strace
+RUN mkdir /var/log/${COMPONENT}
+RUN adduser -H -D ${COMPONENT}
+COPY --from=BUILDIMAGE /tmp/build/src/build/bin/${PROJECT}.${MODULE}.${COMPONENT} /opt/
+RUN chown ${COMPONENT}:${COMPONENT} /opt/${PROJECT}.${MODULE}.${COMPONENT} && \
+    chmod og-rwx,u=rx /opt/${PROJECT}.${MODULE}.${COMPONENT} && \
+    ln -s /opt/${PROJECT}.${MODULE}.${COMPONENT} /opt/${COMPONENT} && \
+    ln -s /opt/${COMPONENT} /opt/component
+
+LABEL GITHASH=${GITHASH}
+LABEL TIMESTAMP=${TIMESTAMP}
+LABEL COMPONENT=${COMPONENT}
+LABEL MODULE=${MODULE}
+LABEL CUSTOMER=${CUSTOMER}
+LABEL PROJECT=${PROJECT}
+
+USER ${COMPONENT}
+ENTRYPOINT [ "/opt/component" ]
