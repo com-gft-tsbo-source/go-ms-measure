@@ -7,7 +7,14 @@ ARG MODULE
 ARG CUSTOMER
 ARG PROJECT
 
-RUN apk add build-base gcc abuild binutils make argp-standalone linux-headers git
+ENV GITHASH=$GITHASH
+ENV TIMESTAMP=$TIMESTAMP
+ENV COMPONENT=$COMPONENT
+ENV MODULE=$MODULE
+ENV CUSTOMER=$CUSTOMER
+ENV PROJECT=$PROJECT
+
+RUN apk add build-base gcc abuild binutils make argp-standalone linux-headers git bash
 RUN mkdir /tmp/build
 
 COPY . /tmp/build/src
@@ -26,14 +33,22 @@ ARG MODULE
 ARG CUSTOMER
 ARG PROJECT
 
-RUN apk --update add curl bind-tools bash vim strace
-RUN mkdir /var/log/${COMPONENT}
+ENV GITHASH=$GITHASH
+ENV TIMESTAMP=$TIMESTAMP
+ENV COMPONENT=$COMPONENT
+ENV MODULE=$MODULE
+ENV CUSTOMER=$CUSTOMER
+ENV PROJECT=$PROJECT
+
+RUN mkdir -p /var/log/${COMPONENT} /workdir
 RUN adduser -H -D ${COMPONENT}
 COPY --from=BUILDIMAGE /tmp/build/src/build/bin/${PROJECT}.${MODULE}.${COMPONENT} /opt/
-RUN chown ${COMPONENT}:${COMPONENT} /opt/${PROJECT}.${MODULE}.${COMPONENT} && \
-    chmod og-rwx,u=rx /opt/${PROJECT}.${MODULE}.${COMPONENT} && \
+RUN chown -R ${COMPONENT}:${COMPONENT} /opt/${PROJECT}.${MODULE}.${COMPONENT} /workdir && \
+    chmod o-rwx,g-rx,u=rwx /opt/${PROJECT}.${MODULE}.${COMPONENT} && \
+    chmod -R o-rwx,g-w,u=rwX /workdir && \
     ln -s /opt/${PROJECT}.${MODULE}.${COMPONENT} /opt/${COMPONENT} && \
     ln -s /opt/${COMPONENT} /opt/component
+
 
 LABEL GITHASH=${GITHASH}
 LABEL TIMESTAMP=${TIMESTAMP}
