@@ -1,6 +1,6 @@
 CUSTOMER ?= com.gft.deuba
 PROJECT ?= com.gft.deuba.unity.release-1
-MODULE ?= backend
+MODULE ?= application
 COMPONENT ?= ms-measure
 TARGET ?= $(PROJECT).$(MODULE).$(COMPONENT)
 
@@ -54,12 +54,12 @@ $(BIN_DIR)/$(TARGET): $(SRCS) Makefile go.mod go.sum
 	  -a \
 	  -o "$@" \
 	  "cmd/main.go"
+	@if [ ! -z "$(DIST_DIR)" ] ; then $(CP) -v "$(BIN_DIR)/$(TARGET)" "$(DIST_DIR)" ; fi
+
+dist:
+	@if [ ! -z "$(DIST_DIR)" ] ; then $(CP) -v "$(BIN_DIR)/$(TARGET)" "$(DIST_DIR)" ; fi
 
 dep:
-# #	@cd .. && $(GOMOD) init gft.com/m/v2
-# 	@cd .. && $(GOMOD) download golang.org/x/net
-# 	@cd .. && $(GOGET) golang.org/x/crypto/bcrypt
-# 	@cd .. && $(GOGET) github.com/prometheus/client_golang/prometheus/promhttp
 
 docker: docker-$(DOCKER_VARIANT)
 docker-$(DOCKER_VARIANT): $(DOCKER_DIR)/$(TARGET)-$(DOCKER_VARIANT).iid
