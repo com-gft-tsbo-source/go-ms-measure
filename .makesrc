@@ -1,0 +1,1 @@
+SRCS := $(shell (find $(PATH_BASE)  -type f -name '*.go' )) $(PATH_BASE)/go.mod $(PATH_BASE)/go.sum  $(PATH_BASE)/Makefile $(PATH_BASE)/Dockerfile-$(DOCKER_VARIANT)

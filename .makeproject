@@ -1,0 +1,5 @@
+CUSTOMER ?= com.gft.tsbo
+PROJECT ?= com.gft.tsbo.source
+MODULE ?= application
+COMPONENT ?= ms-measure
+GIT_HOST ?= github.com

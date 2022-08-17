@@ -13,8 +13,8 @@ github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dR
 github.com/boltdb/bolt v1.3.1/go.mod h1:clJnj/oiGkjum5o1McbSZDSLxVThjynRyGBgiAx27Ps=
 github.com/cespare/xxhash/v2 v2.1.1 h1:6MnRN8NT7+YBpUIWxHtefFZOKTAPgGjpQSxqLNn0+qY=
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
-github.com/com-gft-tsbo-source/go-common v0.0.1 h1:8ch1khlQYr/JdC8fbm+xc3AwII5KmPcrxCpqKEYjV30=
-github.com/com-gft-tsbo-source/go-common v0.0.1/go.mod h1:fZLS0sWcXo0wNS7eeBtI3C1vRqXXCbljzh+ucwpsh60=
+github.com/com-gft-tsbo-source/go-common v0.0.2 h1:aI2RCv//C1C/dZ7/7nRW+op0Itv7flLWJ1QMGNFLvqU=
+github.com/com-gft-tsbo-source/go-common v0.0.2/go.mod h1:fZLS0sWcXo0wNS7eeBtI3C1vRqXXCbljzh+ucwpsh60=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=

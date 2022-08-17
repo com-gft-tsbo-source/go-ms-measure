@@ -1,0 +1,27 @@
+$(BIN_DIR)/$(TARGET): $(SRCS) Makefile
+	@$(ECHO) "### GO  /BIN   $(PROJECT).$(MODULE).$(COMPONENT) - $(DOCKER_VARIANT)"
+	@$(MKDIR) "$(BIN_DIR)" "$(OBJ_DIR)"
+	@$(GOBUILD) -tags osusergo,netgo \
+	  -ldflags "\
+	    -linkmode external \
+	    -extldflags \
+	    -static \
+	    -X github.com/com-gft-tsbo-source/go-common/ms-framework/dispatcher._build_component="$(COMPONENT)" \
+	    -X github.com/com-gft-tsbo-source/go-common/ms-framework/dispatcher._build_module="$(MODULE)" \
+	    -X github.com/com-gft-tsbo-source/go-common/ms-framework/dispatcher._build_project="$(PROJECT)" \
+	    -X github.com/com-gft-tsbo-source/go-common/ms-framework/dispatcher._build_customer="$(CUSTOMER)" \
+	    -X github.com/com-gft-tsbo-source/go-common/ms-framework/dispatcher._build_stamp="$(TIMESTAMP)" \
+	    -X github.com/com-gft-tsbo-source/go-common/ms-framework/dispatcher._build_commit="$(_GITHASH)" \
+	  " \
+	  -a \
+	  -o "$@" \
+	  "cmd/main.go"
+	@if [ ! -z "$(DIST_DIR)" ] ; then $(CP) "$(BIN_DIR)/$(TARGET)" "$(DIST_DIR)" ; fi
+
+go.mod:
+	@$(GOCMD) mod init "$(GIT_HOST)/$(GO_PROJECT)/go-$(COMPONENT)"
+
+go.sum: go.mod
+	@$(GOCMD) mod tidy
+
+
