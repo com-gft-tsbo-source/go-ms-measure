@@ -6,6 +6,8 @@ ARG COMPONENT
 ARG MODULE
 ARG CUSTOMER
 ARG PROJECT
+ARG BUILDDIR="."
+ARG IS_LOCAL="false"
 
 ENV GITHASH=$GITHASH
 ENV TIMESTAMP=$TIMESTAMP
@@ -20,9 +22,9 @@ RUN mkdir /tmp/build
 COPY . /tmp/build/src
 
 WORKDIR /tmp/build/src
-RUN make clean
-RUN GITHASH=${GITHASH} TIMESTAMP=${TIMESTAMP} make dep
-RUN GITHASH=${GITHASH} TIMESTAMP=${TIMESTAMP} TARGET=${PROJECT}.${MODULE}.${COMPONENT} make all
+RUN make -C "${BUILDDIR}" clean
+RUN GITHASH="${GITHASH}" TIMESTAMP="${TIMESTAMP}" make -C "${BUILDDIR}" dep
+RUN GITHASH="${GITHASH}" TIMESTAMP="${TIMESTAMP}" TARGET="${PROJECT}.${MODULE}.${COMPONENT}" make -C "${BUILDDIR}" all
 
 FROM alpine
 
@@ -32,6 +34,7 @@ ARG COMPONENT
 ARG MODULE
 ARG CUSTOMER
 ARG PROJECT
+ARG BUILDDIR
 
 ENV GITHASH=$GITHASH
 ENV TIMESTAMP=$TIMESTAMP
@@ -40,15 +43,14 @@ ENV MODULE=$MODULE
 ENV CUSTOMER=$CUSTOMER
 ENV PROJECT=$PROJECT
 
-RUN mkdir -p /var/log/${COMPONENT} /workdir
-RUN adduser -H -D ${COMPONENT}
-COPY --from=BUILDIMAGE /tmp/build/src/build/bin/${PROJECT}.${MODULE}.${COMPONENT} /opt/
-RUN chown -R ${COMPONENT}:${COMPONENT} /opt/${PROJECT}.${MODULE}.${COMPONENT} /workdir && \
-    chmod o-rwx,g-rx,u=rwx /opt/${PROJECT}.${MODULE}.${COMPONENT} && \
+RUN mkdir -p "/var/log/${COMPONENT}" /workdir
+RUN adduser -H -D "${COMPONENT}"
+COPY --from=BUILDIMAGE /tmp/build/src/${BUILDDIR}/build/bin/${PROJECT}.${MODULE}.${COMPONENT} /opt/
+RUN chown -R "${COMPONENT}:${COMPONENT}" "/opt/${PROJECT}.${MODULE}.${COMPONENT}" /workdir && \
+    chmod o-rwx,g-rx,u=rwx "/opt/${PROJECT}.${MODULE}.${COMPONENT}" && \
     chmod -R o-rwx,g-w,u=rwX /workdir && \
-    ln -s /opt/${PROJECT}.${MODULE}.${COMPONENT} /opt/${COMPONENT} && \
-    ln -s /opt/${COMPONENT} /opt/component
-
+    ln -s "/opt/${PROJECT}.${MODULE}.${COMPONENT}" "/opt/${COMPONENT}" && \
+    ln -s "/opt/${COMPONENT}" /opt/component
 
 LABEL GITHASH=${GITHASH}
 LABEL TIMESTAMP=${TIMESTAMP}

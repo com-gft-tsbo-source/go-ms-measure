@@ -1,6 +1,7 @@
 SHELL := /bin/bash
 
 include .makeinfo
+-include ../../../../.makeproject
 include .makeproject
 
 TARGET ?= $(PROJECT).$(MODULE).$(COMPONENT)
@@ -37,8 +38,10 @@ DOCKER_DIR     ?= $(BUILD_DIR)/docker
 DOCKER_VARIANT ?= alpine
 DOCKER_SUFFIX  ?= base
 DOCKER_IID     ?= $(DOCKER_DIR)/$(TARGET)-$(DOCKER_SUFFIX)-$(DOCKER_VARIANT).iid
+DOCKER_LOCAL_IID     ?= $(DOCKER_DIR)/$(TARGET)-$(DOCKER_SUFFIX)-$(DOCKER_VARIANT)-local.iid
 DOCKER_IMAGE   ?= $(TARGET):$(DOCKER_SUFFIX)
 DOCKER_FILE    ?= Dockerfile-$(DOCKER_VARIANT)
+DOCKER_LOCAL_FILE    ?= Dockerfile-$(DOCKER_VARIANT)-local
 
 include .makesrc
 
@@ -91,6 +94,13 @@ docker-ls:
 dist:
 	@if [ ! -z "$(DIST_DIR)" ] ; then $(CP) "$(BIN_DIR)/$(TARGET)" "$(DIST_DIR)" ; fi
 
+docker-local: DOCKER_BUILDDIR=src/$(COMPONENT)
+docker-local: DOCKER_SRCDIR=../..
+docker-local: DOCKER_IS_LOCAL=true
+docker-local: docker-$(DOCKER_VARIANT)
+docker: DOCKER_BUILDDIR=.
+docker: DOCKER_SRCDIR=.
+docker: DOCKER_IS_LOCAL=false
 docker: docker-$(DOCKER_VARIANT)
 docker-$(DOCKER_VARIANT): $(DOCKER_IID)
 
@@ -100,20 +110,23 @@ $(DOCKER_IID): _dockerinfo $(DOCKER_FILE) \
 	@$(ECHO) "### GOM /DOCK  $(PROJECT).$(MODULE).$(COMPONENT) - $(DOCKER_VARIANT)"
 	@if [ -f "$(DOCKER_IID)" ] ; then i=$$( cat "$(DOCKER_IID)" ); $(DOCKER) image rm -f $$i ; rm -f "$(DOCKER_IID)"  2>/dev/null ; fi
 	@$(MKDIR) "$(DOCKER_DIR)" 
-	@$(DOCKER) image build -f ./$(DOCKER_FILE) \
+	@$(DOCKER) image build -f "./$(DOCKER_FILE)" \
+	  --progress=plain \
 	  --build-arg GITHASH="$(_GITHASH)" \
-	  --build-arg COMPONENT=$(COMPONENT) \
-	  --build-arg MODULE=$(MODULE) \
-	  --build-arg PROJECT=$(PROJECT) \
-	  --build-arg CUSTOMER=$(CUSTOMER) \
-	  --tag $(DOCKER_IMAGE) \
+	  --build-arg "COMPONENT=$(COMPONENT)" \
+	  --build-arg "MODULE=$(MODULE)" \
+	  --build-arg "PROJECT=$(PROJECT)" \
+	  --build-arg "CUSTOMER=$(CUSTOMER)" \
+	  --build-arg "BUILDDIR=$(DOCKER_BUILDDIR)" \
+	  --tag "$(DOCKER_IMAGE)" \
 	  --label GITHASH="$(_GITHASH)" \
-	  --label COMPONENT=$(COMPONENT) \
-	  --label MODULE=$(MODULE) \
-	  --label PROJECT=$(PROJECT) \
-	  --label CUSTOMER=$(CUSTOMER) \
+	  --label "COMPONENT=$(COMPONENT)" \
+	  --label "MODULE=$(MODULE)" \
+	  --label "PROJECT=$(PROJECT)" \
+	  --label "CUSTOMER=$(CUSTOMER)" \
+	  --label "IS_LOCAL=$(DOCKER_IS_LOCAL)" \
 	  --iidfile "$(DOCKER_IID)" \
-	  .
+	 "$(DOCKER_SRCDIR)" 
 
 clean:
 	@$(ECHO) "### GOM /CLEAN $(PROJECT).$(MODULE).$(COMPONENT) - $(DOCKER_VARIANT)"
