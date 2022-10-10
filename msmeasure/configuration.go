@@ -102,7 +102,7 @@ func InitConfigurationFromArgs(cfg *Configuration, args []string, flagset *flag.
 
 		if err != nil {
 			flagset.Usage()
-			panic(fmt.Sprintf(fmt.Sprintf("Error: RandomSvc has bad url: '%s'. Error was %s!\n", cfg.RandomSvc, err.Error())))
+			panic(fmt.Sprintf("Error: RandomSvc has bad url: '%s'. Error was %s!\n", cfg.RandomSvc, err.Error()))
 		}
 	}
 
@@ -119,7 +119,7 @@ func InitConfigurationFromArgs(cfg *Configuration, args []string, flagset *flag.
 
 		if err != nil {
 			flagset.Usage()
-			panic(fmt.Sprintf(fmt.Sprintf("Error: Failed to open onfiguration file '%s'. Error was %s!\n", cfg.GetConfigurationFile(), err.Error())))
+			panic(fmt.Sprintf("Error: Failed to open onfiguration file '%s'. Error was %s!\n", cfg.GetConfigurationFile(), err.Error()))
 		}
 
 		defer file.Close()
@@ -128,7 +128,7 @@ func InitConfigurationFromArgs(cfg *Configuration, args []string, flagset *flag.
 		err = decoder.Decode(&configuration)
 		if err != nil {
 			flagset.Usage()
-			panic(fmt.Sprintf(fmt.Sprintf("Error: Failed to parse onfiguration file '%s'. Error was %s!\n", cfg.GetConfigurationFile(), err.Error())))
+			panic(fmt.Sprintf("Error: Failed to parse onfiguration file '%s'. Error was %s!\n", cfg.GetConfigurationFile(), err.Error()))
 		}
 
 		if len(cfg.Upstream) == 0 {
@@ -141,7 +141,7 @@ func InitConfigurationFromArgs(cfg *Configuration, args []string, flagset *flag.
 
 			if err != nil {
 				flagset.Usage()
-				panic(fmt.Sprintf(fmt.Sprintf("Error: RandomSvc has bad url: '%s'. Error was %s!\n", cfg.RandomSvc, err.Error())))
+				panic(fmt.Sprintf("Error: RandomSvc has bad url: '%s'. Error was %s!\n", cfg.RandomSvc, err.Error()))
 			}
 		}
 
@@ -164,7 +164,7 @@ func InitConfigurationFromArgs(cfg *Configuration, args []string, flagset *flag.
 
 		if err != nil {
 			flagset.Usage()
-			panic(fmt.Sprintf(fmt.Sprintf("Error: RandomSvc has bad url: '%s'. Error was %s!\n", cfg.RandomSvc, err.Error())))
+			panic(fmt.Sprintf("Error: RandomSvc has bad url: '%s'. Error was %s!\n", cfg.RandomSvc, err.Error()))
 		}
 	}
 
