@@ -19,6 +19,7 @@ import (
 
 	"github.com/com-gft-tsbo-source/go-common/device"
 	"github.com/com-gft-tsbo-source/go-common/device/implementation/devicevalue"
+	"github.com/com-gft-tsbo-source/go-common/ms-framework/dispatcher"
 	"github.com/com-gft-tsbo-source/go-common/ms-framework/microservice"
 )
 
@@ -108,7 +109,7 @@ func fmt_msg_header(version string, environment string, address string) string {
 func (ms *MsMeasure) httpGetMeasure(w http.ResponseWriter, r *http.Request) (status int, contentLen int, msg string) {
 	var v devicevalue.DeviceValue
 	deviceMutex.Lock()
-	value, name, version := ms.getRandomNumber(r)
+	value, name, version, trace := ms.getRandomNumber(r)
 	ms.TranslateValue(value)
 	deviceMutex.Unlock()
 	ms.lastRequest = time.Now()
@@ -117,7 +118,8 @@ func (ms *MsMeasure) httpGetMeasure(w http.ResponseWriter, r *http.Request) (sta
 	environment := r.Header.Get("X-Environment")
 	msg = fmt_msg_header(ms.GetVersion(), environment, ms.GetDeviceAddress())
 	msg = fmt.Sprintf("%s reported value '%s' with rnrsrc '%s@%s'.", msg, v.GetFormatted(), name, version)
-	response := NewMeasureResponse(msg, ms)
+	response := NewMeasureResponse(status, msg, ms)
+	response.Trace = *trace
 	response.RnrSvcVersion = version
 	response.RnrSvcName = name
 	ms.SetResponseHeaders("application/json; charset=utf-8", w, r)
@@ -133,7 +135,7 @@ func (ms *MsMeasure) httpGetDevice(w http.ResponseWriter, r *http.Request) (stat
 	environment := r.Header.Get("X-Environment")
 	msg = fmt_msg_header(ms.GetVersion(), environment, ms.GetDeviceAddress())
 	msg = fmt.Sprintf("%s reported details of device.", msg)
-	response := NewDeviceResponse(msg, ms)
+	response := NewDeviceResponse(status, msg, ms)
 	ms.SetResponseHeaders("application/json; charset=utf-8", w, r)
 	w.WriteHeader(status)
 	contentLen = ms.Reply(w, response)
@@ -163,9 +165,25 @@ var re_find_random_number = regexp.MustCompile("^.*\\s+received\\s+[\"']?(?P<val
 var re_find_random_number_group_value = re_find_random_number.SubexpIndex("value")
 var re_find_random_number_group_server = re_find_random_number.SubexpIndex("server")
 
-func (ms *MsMeasure) getRandomNumberCmd(in *http.Request) (int, string, string) {
+func (ms *MsMeasure) getRandomNumberInternal(in *http.Request) (int, string, string, *dispatcher.Trace) {
+
+	// var stdout, stderr bytes.Buffer
+	var trace dispatcher.Trace
+	dispatcher.InitTraceFromDispatcher(&trace, ms, http.StatusOK, "200 - Ok")
+	trace.Hostname = ""
+	trace.Name = "internal"
+	trace.Version = "1.0.0"
+	value := seededRand.Intn(100)
+
+	return value, "internal", "n/a", &trace
+}
+
+func (ms *MsMeasure) getRandomNumberCmd(in *http.Request) (int, string, string, *dispatcher.Trace) {
 
 	var stdout, stderr bytes.Buffer
+	var trace dispatcher.Trace
+	dispatcher.InitTraceFromDispatcher(&trace, ms, http.StatusOK, "200 - Ok")
+	trace.Version = "cmd"
 
 	cmd := exec.Command("/bin/sh", "-c", ms.GetRandomSvc())
 	cmd.Stdout = &stdout
@@ -174,14 +192,14 @@ func (ms *MsMeasure) getRandomNumberCmd(in *http.Request) (int, string, string) 
 
 	if err != nil {
 		ms.GetLogger().Printf("Command '%s' failed with '%s'.\n", ms.GetRandomSvc(), err)
-		return 0, "failed", "n/a"
+		return 0, "failed", "n/a", &trace
 	}
 
 	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
 
 	if len(errStr) > 0 {
 		ms.GetLogger().Printf("Command '%s' reported error: '%s'.\n", ms.GetRandomSvc(), errStr)
-		return 0, "failed", "n/a"
+		return 0, "failed", "n/a", &trace
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(outStr))
@@ -199,26 +217,28 @@ func (ms *MsMeasure) getRandomNumberCmd(in *http.Request) (int, string, string) 
 
 		if err != nil {
 			ms.GetLogger().Printf("Command '%s' failed to convert '%s' to int.'.\n", ms.GetRandomSvc(), value_str)
-			return 0, "failed", "n/a"
+			return 0, "failed", "n/a", &trace
 		}
-		return value_int, server, "n/a"
+		return value_int, server, "n/a", &trace
 	}
 
-	return 0, "failed", "n/a"
+	return 0, "failed", "n/a", &trace
 }
 
-func (ms *MsMeasure) getRandomNumberRest(in *http.Request) (int, string, string) {
+func (ms *MsMeasure) getRandomNumberRest(in *http.Request) (int, string, string, *dispatcher.Trace) {
 	var err error
 	var req *http.Request
 	var res *http.Response
 	var body []byte
 	var url url.URL = *ms.GetRandomSvcUrl()
+	var trace dispatcher.Trace
+	dispatcher.InitTraceFromDispatcher(&trace, ms, http.StatusOK, "200 - Ok")
 
 	req, err = http.NewRequest(http.MethodGet, url.String(), strings.NewReader(url.String()))
 
 	if err != nil {
 		ms.GetLogger().Printf("Error: Failed to receive random number at randomsvc '%s'!, error was '%s'!\n", ms.GetRandomSvc(), err.Error())
-		return 0, "failed", "n/a"
+		return 0, "failed", "n/a", &trace
 	}
 
 	ms.SetRequestHeaders("", req, in)
@@ -226,7 +246,7 @@ func (ms *MsMeasure) getRandomNumberRest(in *http.Request) (int, string, string)
 	res, err = ms.HTTPClient.Do(req)
 	if err != nil {
 		ms.GetLogger().Printf("Error: Failed to receive random number at randomsvc '%s'!, error was '%s'!\n", ms.GetRandomSvc(), err.Error())
-		return 0, "failed", "n/a"
+		return 0, "failed", "n/a", &trace
 	}
 
 	body, err = ioutil.ReadAll(res.Body)
@@ -234,12 +254,12 @@ func (ms *MsMeasure) getRandomNumberRest(in *http.Request) (int, string, string)
 
 	if err != nil {
 		ms.GetLogger().Printf("Error: Failed to receive random number at randomsvc '%s'!, error was '%s'!\n", ms.GetRandomSvc(), err.Error())
-		return 0, "failed", "n/a"
+		return 0, "failed", "n/a", &trace
 	}
 
 	if res.StatusCode != http.StatusOK {
 		ms.GetLogger().Printf("RandomSvc '%s' replied with status '%s' and message '%s'.\n", ms.GetRandomSvc(), res.StatusCode, body)
-		return 0, "failed", "n/a"
+		return 0, "failed", "n/a", &trace
 	}
 
 	if res != nil {
@@ -248,29 +268,36 @@ func (ms *MsMeasure) getRandomNumberRest(in *http.Request) (int, string, string)
 
 	if err != nil {
 		ms.GetLogger().Printf("Error: Failed to receive random number at randomsvc '%s'!, error was '%s'!\n", ms.GetRandomSvc(), err.Error())
-		return 0, "failed", "n/a"
+		return 0, "failed", "n/a", &trace
 	}
 
 	var randomNumber RandomNumber
-	err = json.Unmarshal(body, &randomNumber)
+	_ = json.Unmarshal(body, &randomNumber)
+	trace.Traces = make([]dispatcher.Trace, 1)
+	trace.Traces[0] = randomNumber.Trace
 
-	return randomNumber.Value, randomNumber.Name, randomNumber.Version
+	return randomNumber.Value, randomNumber.Name, randomNumber.Version, &trace
 }
 
 // getRandomNumber ...
-func (ms *MsMeasure) getRandomNumber(in *http.Request) (int, string, string) {
+func (ms *MsMeasure) getRandomNumber(in *http.Request) (int, string, string, *dispatcher.Trace) {
+	// var trace dispatcher.Trace
+	// dispatcher.InitTraceFromDispatcher(&trace, ms, "200 - Ok")
 
 	randomSvc := ms.GetRandomSvc()
+	// fmt.Printf("'%s' (%d)\n", randomSvc, len(randomSvc))
+	// if len(randomSvc) == 0 {
+	// 	var internalTrace dispatcher.Trace
+	// 	dispatcher.InitTraceFromDispatcher(&internalTrace, ms, "XXX")
+	// 	trace.Traces = make([]dispatcher.Trace, 1)
+	// 	trace.Traces[0] = internalTrace
+	// }
 
-	if len(randomSvc) == 0 {
-		return seededRand.Intn(100), "internal", "0.0.1"
+	if len(randomSvc) == 0 || strings.HasPrefix(randomSvc, ".") {
+		return ms.getRandomNumberInternal(in)
 	}
 
 	if strings.HasPrefix(randomSvc, "/") {
-		return ms.getRandomNumberCmd(in)
-	}
-
-	if strings.HasPrefix(randomSvc, ".") {
 		return ms.getRandomNumberCmd(in)
 	}
 

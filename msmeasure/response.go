@@ -26,8 +26,8 @@ type DeviceResponse struct {
 // ###########################################################################
 
 // InitDeviceResponse Constructor of a response of ms-measure
-func InitDeviceResponse(r *DeviceResponse, status string, ms *MsMeasure) {
-	microservice.InitResponseFromMicroService(&r.Response, ms, status)
+func InitDeviceResponse(r *DeviceResponse, code int, status string, ms *MsMeasure) {
+	microservice.InitResponseFromMicroService(&r.Response, ms, code, status)
 	devicedescriptor.InitFromDeviceDescriptor(&r.DeviceDescriptor, &ms.DeviceDescriptor)
 	devicesimulation.InitFromDeviceSimulation(&r.DeviceSimulation, &ms.DeviceSimulation)
 	r.URLDevice = ms.GetEndpoint("device")
@@ -36,9 +36,9 @@ func InitDeviceResponse(r *DeviceResponse, status string, ms *MsMeasure) {
 }
 
 // NewDeviceResponse ...
-func NewDeviceResponse(status string, ms *MsMeasure) *DeviceResponse {
+func NewDeviceResponse(code int, status string, ms *MsMeasure) *DeviceResponse {
 	var r DeviceResponse
-	InitDeviceResponse(&r, status, ms)
+	InitDeviceResponse(&r, code, status, ms)
 	return &r
 }
 
@@ -60,18 +60,17 @@ type MeasureResponse struct {
 // ###########################################################################
 
 // InitMeasureResponse Constructor of a response of ms-measure
-func InitMeasureResponse(r *MeasureResponse, status string, ms *MsMeasure) {
-	microservice.InitResponseFromMicroService(&r.Response, ms, status)
+func InitMeasureResponse(r *MeasureResponse, code int, status string, ms *MsMeasure) {
+	microservice.InitResponseFromMicroService(&r.Response, ms, code, status)
 	devicedescriptor.InitFromDeviceDescriptor(&r.DeviceDescriptor, &ms.Device)
-	// devicedescriptor.CopyDeviceDescriptor(&r.DeviceDescriptor, &ms.Device)
 	ms.FillDeviceValue(&r.DeviceValue)
 	r.RnrSvcVersion = "???"
 	r.RnrSvcName = "???"
 }
 
 // NewMeasureResponse ...
-func NewMeasureResponse(status string, ms *MsMeasure) *MeasureResponse {
+func NewMeasureResponse(code int, status string, ms *MsMeasure) *MeasureResponse {
 	var r MeasureResponse
-	InitMeasureResponse(&r, status, ms)
+	InitMeasureResponse(&r, code, status, ms)
 	return &r
 }
