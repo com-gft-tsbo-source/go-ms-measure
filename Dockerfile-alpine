@@ -23,6 +23,7 @@ COPY . /tmp/build/src
 
 WORKDIR /tmp/build/src
 RUN make -C "${BUILDDIR}" clean
+RUN rm -f "${BUILDDIR}"/go.sum 
 RUN GITHASH="${GITHASH}" TIMESTAMP="${TIMESTAMP}" make -C "${BUILDDIR}" dep
 RUN GITHASH="${GITHASH}" TIMESTAMP="${TIMESTAMP}" TARGET="${PROJECT}.${MODULE}.${COMPONENT}" make -C "${BUILDDIR}" all
 
