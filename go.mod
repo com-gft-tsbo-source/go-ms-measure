@@ -2,7 +2,7 @@ module github.com/com-gft-tsbo-source/go-ms-measure
 
 go 1.18
 
-require github.com/com-gft-tsbo-source/go-common v0.0.3
+require github.com/com-gft-tsbo-source/go-common v0.0.4
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
