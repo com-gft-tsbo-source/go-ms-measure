@@ -63,6 +63,7 @@ _buildinfo:
 	@$(ECHO) "MODULE         '$(MODULE)'" 
 	@$(ECHO) "TIMESTAMP      '$(TIMESTAMP)'" 
 	@$(ECHO) "GITHASH        '$(GITHASH)'" 
+	@$(ECHO) "VERSION        '$(VERSION)'" 
 
 
 _dockerinfo: _buildinfo
@@ -118,12 +119,13 @@ $(DOCKER_IID): _dockerinfo $(DOCKER_FILE) \
 	  --build-arg "PROJECT=$(PROJECT)" \
 	  --build-arg "CUSTOMER=$(CUSTOMER)" \
 	  --build-arg "BUILDDIR=$(DOCKER_BUILDDIR)" \
+	  --build-arg "VERSION=$(VERSION)" \
 	  --tag "$(DOCKER_IMAGE)" \
 	  --label GITHASH="$(_GITHASH)" \
 	  --label "COMPONENT=$(COMPONENT)" \
 	  --label "MODULE=$(MODULE)" \
 	  --label "PROJECT=$(PROJECT)" \
-	  --label "CUSTOMER=$(CUSTOMER)" \
+	  --label "VERSION=$(VERSION)" \
 	  --label "IS_LOCAL=$(DOCKER_IS_LOCAL)" \
 	  --iidfile "$(DOCKER_IID)" \
 	 "$(DOCKER_SRCDIR)" 

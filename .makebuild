@@ -12,6 +12,7 @@ $(BIN_DIR)/$(TARGET): $(SRCS) Makefile
 	    -X github.com/com-gft-tsbo-source/go-common/ms-framework/dispatcher._build_customer="$(CUSTOMER)" \
 	    -X github.com/com-gft-tsbo-source/go-common/ms-framework/dispatcher._build_stamp="$(TIMESTAMP)" \
 	    -X github.com/com-gft-tsbo-source/go-common/ms-framework/dispatcher._build_commit="$(_GITHASH)" \
+	    -X github.com/com-gft-tsbo-source/go-common/ms-framework/dispatcher._build_version="$(VERSION)" \
 	  " \
 	  -a \
 	  -o "$@" \
