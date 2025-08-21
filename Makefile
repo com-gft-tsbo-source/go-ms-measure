@@ -37,6 +37,7 @@ PATH_BASE      ?= .
 DOCKER_DIR     ?= $(BUILD_DIR)/docker
 DOCKER_VARIANT ?= alpine
 DOCKER_SUFFIX  ?= base
+VERSION        ?= base
 DOCKER_IID     ?= $(DOCKER_DIR)/$(TARGET)-$(DOCKER_SUFFIX)-$(DOCKER_VARIANT).iid
 DOCKER_LOCAL_IID     ?= $(DOCKER_DIR)/$(TARGET)-$(DOCKER_SUFFIX)-$(DOCKER_VARIANT)-local.iid
 DOCKER_IMAGE   ?= $(TARGET):$(DOCKER_SUFFIX)
@@ -63,6 +64,7 @@ _buildinfo:
 	@$(ECHO) "MODULE         '$(MODULE)'" 
 	@$(ECHO) "TIMESTAMP      '$(TIMESTAMP)'" 
 	@$(ECHO) "GITHASH        '$(GITHASH)'" 
+	@$(ECHO) "VERSION        '$(VERSION)'" 
 
 
 _dockerinfo: _buildinfo
@@ -118,12 +120,13 @@ $(DOCKER_IID): _dockerinfo $(DOCKER_FILE) \
 	  --build-arg "PROJECT=$(PROJECT)" \
 	  --build-arg "CUSTOMER=$(CUSTOMER)" \
 	  --build-arg "BUILDDIR=$(DOCKER_BUILDDIR)" \
+	  --build-arg "VERSION=$(VERSION)" \
 	  --tag "$(DOCKER_IMAGE)" \
 	  --label GITHASH="$(_GITHASH)" \
 	  --label "COMPONENT=$(COMPONENT)" \
 	  --label "MODULE=$(MODULE)" \
 	  --label "PROJECT=$(PROJECT)" \
-	  --label "CUSTOMER=$(CUSTOMER)" \
+	  --label "VERSION=$(VERSION)" \
 	  --label "IS_LOCAL=$(DOCKER_IS_LOCAL)" \
 	  --iidfile "$(DOCKER_IID)" \
 	 "$(DOCKER_SRCDIR)" 

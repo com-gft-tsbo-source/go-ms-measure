@@ -2,7 +2,7 @@ module github.com/com-gft-tsbo-source/go-ms-measure
 
 go 1.18
 
-require github.com/com-gft-tsbo-source/go-common v0.0.4
+require github.com/com-gft-tsbo-source/go-common v0.0.5
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -18,3 +18,5 @@ require (
 	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
 	google.golang.org/protobuf v1.26.0-rc.1 // indirect
 )
+
+// replace github.com/com-gft-tsbo-source/go-common => /tmp/build/src/go-common
